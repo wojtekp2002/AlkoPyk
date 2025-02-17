@@ -3,11 +3,14 @@ const app = express();
 const cors = require('cors');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/add-friend');
+const postRoutes = require('./routes/post');
+const eventRoutes = require('./routes/event');
 
 app.use(cors({
     origin: 'http://localhost:3000',
     credentials: true
-  }));
+}));
 
 // Middleware
 app.use(express.json()); // pozwala na parsowanie JSON w body requestu
@@ -37,3 +40,12 @@ mongoose.connect('mongodb://localhost:27017/alko-app', {
 
 //auth
 app.use('/api/auth', authRoutes);
+
+//add-friend
+app.use('/api/users', userRoutes);
+
+//event
+app.use('/api/events', eventRoutes);
+
+//posty
+app.use('/api/posts', postRoutes);
