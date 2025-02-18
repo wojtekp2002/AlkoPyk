@@ -34,4 +34,22 @@ router.post('/add-friend', requireAuth, async (req, res) => {
     }
   });
   
+  // POBIERANIE PROFILU
+router.get('/profile', requireAuth, async (req, res) => {
+  try {
+    // userId mamy w req.userId (z middleware JWT)
+    const user = await User.findById(req.userId).select('-password');
+    // .select('-password') wyklucza pole "password" z wyniku
+
+    if (!user) {
+      return res.status(404).json({ message: 'Nie znaleziono użytkownika' });
+    }
+
+    return res.json(user);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Błąd serwera' });
+  }
+});
+
   module.exports = router;

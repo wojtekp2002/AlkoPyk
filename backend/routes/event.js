@@ -159,4 +159,31 @@ router.post('/end', requireAuth, async (req, res) => {
   }
 });
 
+// POBIERANIE LISTY EVENTÓW
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    // Znajdujemy wszystkie eventy w bazie
+    // Możesz dodać .populate('participants', 'username') żeby pobrać szczegóły uczestników
+    const events = await Event.find({});
+    return res.json(events);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Błąd serwera przy pobieraniu eventów' });
+  }
+});
+
+// POBIERANIE JEDNEGO EVENTU PO ID (też przydatne w EventDetail)
+router.get('/:id', requireAuth, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event nie istnieje' });
+    }
+    return res.json(event);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Błąd serwera przy pobieraniu eventu' });
+  }
+});
+
 module.exports = router;

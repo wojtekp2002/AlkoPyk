@@ -1,19 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import Register from './Register';
-import Login from './Login';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import Navbar from './components/Navbar';
+
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Feed from './pages/Feed';
+import CreatePost from './pages/CreatePost';
+import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
+import Profile from './pages/Profile';
 
 function App() {
-  const [view, setView] = useState('register');
-
   return (
-    <div>
-      <h1>Moja Aplikacja Alko</h1>
-      <button onClick={() => setView('register')}>Rejestracja</button>
-      <button onClick={() => setView('login')}>Logowanie</button>
+    <Router>
+      <div>
+        {/* Navbar wyświetlany na każdej stronie */}
+        <Navbar />
 
-      {view === 'register' && <Register />}
-      {view === 'login' && <Login />}
-    </div>
+        <Routes>
+          <Route path="/" element={<h2>Strona główna</h2>} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/feed" element={<Feed />} />
+          <Route path="/create-post" element={<CreatePost />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/profile" element={<Profile />} />
+
+          {/* Możesz dodać inne ścieżki */}
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

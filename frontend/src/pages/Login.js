@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -10,7 +13,7 @@ function Login() {
 
   const handleChange = (e) => {
     setFormData(prev => ({
-      ...prev, 
+      ...prev,
       [e.target.name]: e.target.value
     }));
   };
@@ -19,13 +22,15 @@ function Login() {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', formData);
-      setMessage(res.data.message + ' - Użytkownik: ' + res.data.user.username);
-      // Otrzymamy też token (res.data.token)
-      // Możemy go zapisać w localStorage:
+      setMessage(res.data.message + ' – Użytkownik: ' + res.data.user.username);
+
+      // Zapis tokenu i usera
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+
+      navigate('/feed');
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Błąd');
+      setMessage(err.response?.data?.message || 'Błąd logowania');
     }
   };
 
@@ -36,7 +41,7 @@ function Login() {
         <div>
           <label>Email:</label>
           <input 
-            type="email" 
+            type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
@@ -45,7 +50,7 @@ function Login() {
         <div>
           <label>Hasło:</label>
           <input 
-            type="password" 
+            type="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
