@@ -1,0 +1,22 @@
+/* Gradient fiolet-zielony dla landing page */
+.landing-page-container {
+    height: 100vh;
+    width: 100%;
+    background: linear-gradient(135deg, #5B247A, #1BCEDF);
+    /* fiolet (#5B247A) do turkus/mięta (#1BCEDF) */
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+  
+/* Karty logowania / rejestracji – np. pastelowe tło */
+.auth-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #82ffa1, #a58afb);
+    /* zieleń (#82ffa1) do fiolet (#a58afb) */
+}
+  
+.auth-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}

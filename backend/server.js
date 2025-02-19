@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/add-friend');
 const postRoutes = require('./routes/post');
 const eventRoutes = require('./routes/event');
+const profileRoutes = require('./routes/user')
 
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -49,3 +50,6 @@ app.use('/api/events', eventRoutes);
 
 //posty
 app.use('/api/posts', postRoutes);
+
+//profil
+app.use('/api/profile', userRoutes);

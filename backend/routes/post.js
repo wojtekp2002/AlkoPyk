@@ -151,4 +151,27 @@ router.post('/:postId/like', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.query; // z zapytania np. ?userId=63cabc...
+
+    let filter = {};
+    if (userId) {
+      filter.author = userId;
+    }
+
+    // Pobieramy z bazy
+    const posts = await Post.find(filter)
+      .sort({ createdAt: -1 })
+      .populate('author', 'username')
+      .populate('withFriends', 'username')
+      .populate('comments.user', 'username');
+
+    return res.json(posts);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Błąd serwera przy pobieraniu postów' });
+  }
+});
+
 module.exports = router;

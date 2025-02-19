@@ -13,33 +13,12 @@ function Feed() {
     }
 
     axios.get('http://localhost:5000/api/posts', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` }
     })
-    .then(res => {
-      setPosts(res.data);
-    })
-    .catch(err => {
-      setMessage(err.response?.data?.message || 'Błąd pobierania postów');
-    });
+    .then(res => setPosts(res.data))
+    .catch(err => setMessage(err.response?.data?.message || 'Błąd pobierania postów'));
   }, [token]);
 
-  // Funkcja do polubienia posta
-  const handleLike = async (postId) => {
-    try {
-      const res = await axios.post(`http://localhost:5000/api/posts/${postId}/like`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setMessage(res.data.message);
-      // Odśwież posty
-      refreshPosts();
-    } catch (err) {
-      setMessage(err.response?.data?.message || 'Błąd lajkowania');
-    }
-  };
-
-  // Funkcja do odświeżania postów
   const refreshPosts = () => {
     axios.get('http://localhost:5000/api/posts', {
       headers: { Authorization: `Bearer ${token}` }
@@ -48,77 +27,130 @@ function Feed() {
     .catch(err => setMessage('Błąd odświeżania postów'));
   };
 
+  // Lajk
+  const handleLike = async (postId) => {
+    try {
+      const res = await axios.post(`http://localhost:5000/api/posts/${postId}/like`, {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMessage(res.data.message);
+      refreshPosts();
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Błąd lajkowania');
+    }
+  };
+
   return (
-    <div>
-      <h2>Feed</h2>
-      {message && <p>{message}</p>}
+    <div className="container">
+      <h2 className="my-3">Feed</h2>
+      {message && <div className="alert alert-info">{message}</div>}
 
-      <ul>
-        {posts.map(post => {
-          return (
-            <li key={post._id} style={{ marginBottom: '20px' }}>
-              <strong>Autor:</strong> {post.author?.username} <br/>
-              Opis: {post.description} <br/>
-              Co wypito: {post.whatWasDrunk} <br/>
-              Koszt: {post.cost} <br/>
-              <br/>
-
-              <div>
-                <button onClick={() => handleLike(post._id)}>
-                  Polub / Odlub
-                </button>
-                <span>: {post.likedBy ? post.likedBy.length : 0}</span>
-              </div>
-
-              <div style={{ marginTop: '10px' }}>
-                <b>Komentarze:</b>
-                <ul>
-                  {post.comments?.map((comment) => (
-                    <li key={comment._id}>
-                      <i>UserID: {comment.user}</i> - {comment.text}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Formularz dodania komentarza */}
-              <CommentForm postId={post._id} onSuccess={refreshPosts} />
-            </li>
-          );
-        })}
-      </ul>
+      {posts.map(post => (
+        <PostItem
+          key={post._id}
+          post={post}
+          token={token}
+          onLike={() => handleLike(post._id)}
+          onRefresh={refreshPosts}
+        />
+      ))}
     </div>
   );
 }
 
-// Komponent wewnętrzny do dodawania komentarza
-function CommentForm({ postId, onSuccess }) {
-  const token = localStorage.getItem('token');
+// Komponent pojedynczego posta
+function PostItem({ post, token, onLike, onRefresh }) {
+  const [showComments, setShowComments] = useState(false);
+
+  return (
+    <div className="card mb-4">
+      <div className="card-body">
+        <div className="d-flex align-items-center mb-2">
+          <img 
+            src="https://via.placeholder.com/40"
+            alt="avatar"
+            className="rounded-circle me-2"
+          />
+          <strong>{post.author?.username}</strong>
+        </div>
+
+        {/* Opis posta */}
+        <p>{post.description}</p>
+        {post.image && (
+          <img 
+            src={post.image}
+            alt="post-img"
+            className="img-fluid mb-3"
+          />
+        )}
+
+        {/* Ikony lajka i komentarza, obok liczby */}
+        <div className="d-flex align-items-center">
+          <button 
+            onClick={onLike}
+            className="btn btn-sm btn-light me-3 d-flex align-items-center"
+          >
+            <i className="fa fa-heart text-danger me-1"></i>
+            <span>{post.likedBy?.length || 0}</span>
+          </button>
+
+          <button 
+            onClick={() => setShowComments(!showComments)}
+            className="btn btn-sm btn-light d-flex align-items-center"
+          >
+            <i className="fa fa-comment me-1"></i>
+            <span>{post.comments?.length || 0}</span>
+          </button>
+        </div>
+
+        {/* Sekcja komentarzy – widoczna po kliknięciu w dymek */}
+        {showComments && (
+          <div className="mt-3">
+            <ul className="list-group">
+              {post.comments?.map(comment => (
+                <li key={comment._id} className="list-group-item">
+                  <strong>{comment.user?.username}</strong>: {comment.text}
+                </li>
+              ))}
+            </ul>
+
+            {/* Formularz dodawania komentarza */}
+            <CommentForm postId={post._id} token={token} onSuccess={onRefresh} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Formularz komentarza
+function CommentForm({ postId, token, onSuccess }) {
   const [text, setText] = useState('');
 
   const handleAddComment = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`http://localhost:5000/api/posts/${postId}/comment`, 
-        { text }, 
+      await axios.post(`http://localhost:5000/api/posts/${postId}/comment`,
+        { text },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setText('');
-      if (onSuccess) onSuccess(); 
+      onSuccess && onSuccess();
     } catch (err) {
       console.error(err);
     }
   };
 
   return (
-    <form onSubmit={handleAddComment} style={{ marginTop: '5px' }}>
+    <form onSubmit={handleAddComment} className="mt-2 d-flex">
       <input 
         type="text"
+        className="form-control me-2"
+        placeholder="Dodaj komentarz..."
         value={text}
         onChange={e => setText(e.target.value)}
-        placeholder="Napisz komentarz..."
       />
-      <button type="submit">Dodaj komentarz</button>
+      <button type="submit" className="btn btn-primary">Wyślij</button>
     </form>
   );
 }

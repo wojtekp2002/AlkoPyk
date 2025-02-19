@@ -4,11 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 function Register() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
@@ -30,39 +26,52 @@ function Register() {
   };
 
   return (
-    <div>
-      <h2>Rejestracja</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Nazwa użytkownika:</label>
-          <input 
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-          />
+    <div className="auth-container d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
+      <div className="col-md-4">
+        <div className="auth-cards p-4">
+          <h2 className="mb-4">Rejestracja</h2>
+          {message && <div className="alert alert-info">{message}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">Nazwa użytkownika</label>
+              <input 
+                type="text"
+                name="username"
+                className="form-control"
+                value={formData.username}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Email</label>
+              <input 
+                type="email"
+                name="email"
+                className="form-control"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Hasło</label>
+              <input 
+                type="password"
+                name="password"
+                className="form-control"
+                value={formData.password}
+                onChange={handleChange}
+              />
+            </div>
+
+            <button className="btn btn-success w-100 mt-2">
+              Zarejestruj
+            </button>
+          </form>
         </div>
-        <div>
-          <label>Email:</label>
-          <input 
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>Hasło:</label>
-          <input 
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-          />
-        </div>
-        <button type="submit">Zarejestruj</button>
-      </form>
-      {message && <p>{message}</p>}
+      </div>
     </div>
   );
 }
