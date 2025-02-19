@@ -3,33 +3,15 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 
 const requireAuth = require('../middleware/auths');
-const Post = require('../models/post-model');
+const Post = require('../models/post-model'); 
+const User = require('../models/user-model');     
 
-// ====================
-// 1) Tworzenie posta z walidacją cost
-// ====================
+
 router.post(
-  '/create', 
+  '/create',
   requireAuth,
-  // Tutaj używamy express-validator:
-  [
-    check('cost')
-      .optional() // cost może być opcjonalny, ale jeśli jest, to musi być liczbą
-      .isNumeric()
-      .withMessage('Cost musi być liczbą'),
-    check('description')
-      .optional()
-      .isString()
-      .withMessage('description musi być tekstem')
-  ],
   async (req, res) => {
     try {
-      // Sprawdzamy błędy walidacji:
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-
       const { description, whatWasDrunk, cost, withFriends, image } = req.body;
 
       const newPost = new Post({
@@ -37,41 +19,37 @@ router.post(
         description,
         whatWasDrunk,
         cost,
-        withFriends,
-        image // base64 (np. "data:image/png;base64,....")
+        withFriends,  // tablica IDs znajomych
+        image
       });
 
       await newPost.save();
       return res.status(201).json({ message: 'Post utworzony', post: newPost });
     } catch (err) {
       console.error(err);
-      return res.status(500).json({ message: 'Błąd serwera' });
+      return res.status(500).json({ message: 'Błąd serwera przy tworzeniu posta' });
     }
   }
 );
 
-// ====================
-// 2) Pobieranie listy postów (feed)
-// ====================
+
 router.get('/', requireAuth, async (req, res) => {
   try {
-    // Przykład: pobieramy wszystkie posty, posortowane od najnowszych
-    // (Możesz tu dodać logikę, by pobierać tylko posty znajomych itp.)
+    // np. sortujemy po dacie malejąco
     const posts = await Post.find({})
-      .populate('author', 'username')       // dołącz dane autora (np. username)
-      .populate('withFriends', 'username')  // dołącz dane znajomych
-      .sort({ createdAt: -1 });            // sortowanie malejąco po dacie
+      .sort({ createdAt: -1 })
+      .populate('author', 'username')     // jeżeli chcesz mieć dane usera
+      .populate('withFriends', 'username')
+      .populate('comments.user', 'username'); // wyświetli username autora komentarza
 
     return res.json(posts);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Błąd serwera' });
+    return res.status(500).json({ message: 'Błąd serwera przy pobieraniu postów' });
   }
 });
 
-// ====================
-// 3) Dodawanie komentarza
-// ====================
+
 router.post(
   '/:postId/comment',
   requireAuth,
@@ -99,7 +77,7 @@ router.post(
 
       // Dodajemy komentarz do tablicy comments
       const newComment = {
-        user: req.userId,   // kto dodał komentarz
+        user: req.userId,
         text: text,
         createdAt: new Date()
       };
@@ -109,31 +87,67 @@ router.post(
       return res.json({ message: 'Dodano komentarz', post });
     } catch (err) {
       console.error(err);
-      return res.status(500).json({ message: 'Błąd serwera' });
+      return res.status(500).json({ message: 'Błąd serwera przy dodawaniu komentarza' });
     }
   }
 );
 
-// ====================
-// 4) Lajkowanie posta
-// ====================
-router.post('/:postId/like', requireAuth, async (req, res) => {
-  try {
-    const { postId } = req.params;
-    const post = await Post.findById(postId);
 
+router.delete('/:postId/comment/:commentId', requireAuth, async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+
+    const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({ message: 'Post nie istnieje' });
     }
 
-    // Prosty przykład: zwiększamy pole likesCount o 1
-    post.likesCount += 1;
+    // Szukanie komentarza
+    const commentIndex = post.comments.findIndex(
+      c => c._id.toString() === commentId
+    );
+    if (commentIndex === -1) {
+      return res.status(404).json({ message: 'Komentarz nie istnieje' });
+    }
+
+    post.comments.splice(commentIndex, 1);
     await post.save();
 
-    return res.json({ message: 'Dodano lajka', post });
+    return res.json({ message: 'Komentarz usunięty', post });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Błąd serwera' });
+    return res.status(500).json({ message: 'Błąd serwera przy usuwaniu komentarza' });
+  }
+});
+
+
+router.post('/:postId/like', requireAuth, async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post nie istnieje' });
+    }
+
+    // Czy user już polubił
+    const hasLiked = post.likedBy.includes(req.userId);
+
+    if (hasLiked) {
+      // Odlajkowanie
+      post.likedBy = post.likedBy.filter(
+        userId => userId.toString() !== req.userId
+      );
+      await post.save();
+      return res.json({ message: 'Post odlubiony', post });
+    } else {
+      
+      post.likedBy.push(req.userId);
+      await post.save();
+      return res.json({ message: 'Post polubiony', post });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Błąd serwera przy lajkowaniu posta' });
   }
 });
 

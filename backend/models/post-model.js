@@ -7,7 +7,11 @@ const postSchema = new mongoose.Schema({
   whatWasDrunk: { type: String },
   cost: { type: Number, default: 0 },
   image: { type: String },
-  likesCount: { type: Number, default: 0 },
+
+  // Lajki – zamiast liczyć samą liczbę, przechowajmy listę userów, którzy polubili
+  likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
+  // Komentarze – tablica obiektów
   comments: [
     {
       user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -16,7 +20,6 @@ const postSchema = new mongoose.Schema({
     }
   ],
 
-  date: { type: Date, default: Date.now }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Post', postSchema);
