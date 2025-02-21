@@ -62,10 +62,19 @@ function Navbar() {
           </li>
 
           {/* Ikona imprez/powiadomień */}
-          <li className="nav-item me-3">
-            <Link className="nav-link" to="/events">
+          <li className="nav-item dropdown me-3">
+            <button 
+              className="nav-link btn btn-link dropdown-toggle text-white"
+              id="notifDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
               <i className="fa fa-bell fa-lg"></i>
-            </Link>
+            </button>
+            <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="notifDropdown">
+              {/* tu mapujesz powiadomienia */}
+              <li><a className="dropdown-item" href="#!">Brak powiadomień</a></li>
+            </ul>
           </li>
 
           {/* Profil (dropdown) */}

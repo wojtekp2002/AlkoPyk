@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 function Login() {
   const navigate = useNavigate();
@@ -29,6 +30,15 @@ function Login() {
   return (
     <div className="auth-container d-flex flex-column align-items-center justify-content-center">
       <div className="col-md-4">
+
+        <h2 
+          className="text-center"
+          style={{ cursor: 'pointer' }}
+          onClick={() => navigate('/')}
+        >
+          <strong>ALKO APP</strong>
+        </h2>
+
         <div className="auth-card p-4">
           <h2 className="mb-4">Logowanie</h2>
           {message && <div className="alert alert-info">{message}</div>}
@@ -59,6 +69,10 @@ function Login() {
             <button type="submit" className="btn btn-primary w-100">
               Zaloguj
             </button>
+
+            <p className="mt-2 text-center">
+              Nie masz konta? <Link to="/register">Zarejestruj się</Link>
+            </p>
           </form>
         </div>
       </div>

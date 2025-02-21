@@ -3,10 +3,11 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function Profile() {
-  const navigate = useNavigate(); // <--- to jest konieczne
+  const navigate = useNavigate(); 
   const [userData, setUserData] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
   const [message, setMessage] = useState('');
+  const [showFriends, setShowFriends] = useState(false);
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -72,23 +73,41 @@ function Profile() {
 
       {/* Lista znajomych */}
       <div className="mb-3">
-        {friendsCount > 0 ? (
-          <div className="d-flex flex-wrap">
-            {userData.friends.map(friend => (
-              <div 
-                key={friend._id}
-                className="me-2 mb-2 text-primary"
-                style={{ cursor: 'pointer' }}
-                onClick={() => navigate(`/profile/${friend._id}`)}
-              >
-                {friend.username}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p>Brak znajomych</p>
-        )}
+        <button
+          className="btn btn-link p-0 text-decoration-none"
+          onClick={() => setShowFriends(true)}
+        >
+          Znajomi ({friendsCount})
+        </button>
       </div>
+
+      {/* Modal wyświetlający się, gdy showFriends = true */}
+      {showFriends && (
+        <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Znajomi</h5>
+                <button type="button" className="btn-close" onClick={() => setShowFriends(false)}></button>
+              </div>
+              <div className="modal-body">
+                {userData.friends?.map(friend => (
+                  <div 
+                    key={friend._id} 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      setShowFriends(false);
+                      navigate(`/profile/${friend._id}`);
+                    }}
+                  >
+                    {friend.username}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Posty usera */}
       {userPosts.length === 0 ? (
