@@ -13,7 +13,7 @@ function LandingPage() {
 
   return (
     <div className="landing-page-container d-flex flex-column align-items-center justify-content-center">
-      <h1 className="text-white display-1 mb-4">AlkoPyk</h1>
+      <h1 className="text-white display-1 mb-4 fw-bold">AlkoPyk</h1>
 
       <div className="mb-2">
         <Link to="/login" className="btn btn-light me-3">

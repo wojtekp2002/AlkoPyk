@@ -7,12 +7,11 @@
     background-repeat: no-repeat;
     background-size: cover;
 }
-  
-/* Karty logowania / rejestracji – np. pastelowe tło */
+
+/* Karty logowania */
 .auth-container {
     min-height: 100vh;
     background: linear-gradient(135deg, #82ffa1, #a58afb);
-    /* zieleń (#82ffa1) do fiolet (#a58afb) */
 }
   
 .auth-card {

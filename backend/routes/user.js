@@ -35,4 +35,16 @@ router.get('/search', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/:id', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('-password')
+      .populate('friends', 'username');
+    if (!user) return res.status(404).json({ message: 'Nie znaleziono usera' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Błąd serwera przy pobieraniu usera' });
+  }
+});
+
 module.exports = router;

@@ -41,8 +41,8 @@ function Feed() {
   };
 
   return (
-    <div className="container">
-      <h2 className="my-3">Feed</h2>
+    <div className="container card mb-4 shadow-sm">
+      <h2 className="my-3"></h2>
       {message && <div className="alert alert-info">{message}</div>}
 
       {posts.map(post => (

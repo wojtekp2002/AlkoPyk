@@ -28,7 +28,7 @@ function Register() {
   return (
     <div className="auth-container d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
       <div className="col-md-4">
-        <div className="auth-cards p-4">
+        <div className="auth-card p-4">
           <h2 className="mb-4">Rejestracja</h2>
           {message && <div className="alert alert-info">{message}</div>}
 

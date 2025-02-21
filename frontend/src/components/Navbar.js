@@ -1,10 +1,13 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function Navbar() {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -12,7 +15,14 @@ function Navbar() {
     navigate('/login');
   };
 
-  if (!token) return null; // Gdy nie ma tokenu, nie wyświetlamy navbaru
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    // Odesłać do strony wyników, np. /search?query=xyz
+    if (!searchQuery) return;
+    navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
+  };
+
+  if (!token) return null;
 
   return (
     <nav className="navbar navbar-expand navbar-dark bg-dark mb-3">
@@ -20,6 +30,21 @@ function Navbar() {
         <Link className="navbar-brand" to="/feed">
           <strong>AlkoPyk</strong>
         </Link>
+
+        {/* Search form */}
+        <form className="d-flex me-auto ms-3" onSubmit={handleSearch}>
+          <input 
+            className="form-control" 
+            type="search" 
+            placeholder="Szukaj..." 
+            aria-label="Szukaj"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button className="btn btn-outline-light ms-2" type="submit">
+            <i className="fa fa-search"></i>
+          </button>
+        </form>
 
         <ul className="navbar-nav ms-auto align-items-center">
           {/* Ikona Home */}

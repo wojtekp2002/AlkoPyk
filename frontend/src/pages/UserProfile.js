@@ -1,48 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
-function Profile() {
-  const navigate = useNavigate(); // <--- to jest konieczne
+function UserProfile() {
+  const { userId } = useParams(); // -> /profile/:userId
+  const token = localStorage.getItem('token');
+
   const [userData, setUserData] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
   const [message, setMessage] = useState('');
-  const token = localStorage.getItem('token');
 
   useEffect(() => {
     if (!token) {
       setMessage('Brak tokenu');
       return;
     }
-    fetchProfile();
-  }, [token]);
+    fetchUserData();
+  }, [token, userId]);
 
-  const fetchProfile = async () => {
+  const fetchUserData = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/users/profile', {
+      const resUser = await axios.get(`http://localhost:5000/api/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUserData(res.data);
-      fetchPostsForUser(res.data._id);
-    } catch (err) {
-      setMessage('Błąd profilu');
-    }
-  };
+      setUserData(resUser.data);
 
-  const fetchPostsForUser = async (userId) => {
-    try {
-      const res = await axios.get(`http://localhost:5000/api/posts?userId=${userId}`, {
+      // Posty usera:
+      const resPosts = await axios.get(`http://localhost:5000/api/posts?userId=${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUserPosts(res.data);
+      setUserPosts(resPosts.data);
+
     } catch (err) {
-      setMessage('Błąd pobierania postów usera');
+      setMessage('Błąd pobierania cudzego profilu');
     }
   };
 
   if (!userData) {
     return (
-      <div className="container my-4">
+      <div className="container my-4 col-md-4">
         {message || 'Ładowanie...'}
       </div>
     );
@@ -54,9 +50,8 @@ function Profile() {
     <div className="container my-4 col-md-4">
       {message && <div className="alert alert-info">{message}</div>}
 
-      {/* Góra profilu */}
       <div className="d-flex align-items-center mb-4">
-        <img 
+        <img
           src="https://via.placeholder.com/80"
           alt="avatar"
           className="rounded-circle me-3"
@@ -70,36 +65,29 @@ function Profile() {
         </div>
       </div>
 
-      {/* Lista znajomych */}
-      <div className="mb-3">
-        {friendsCount > 0 ? (
-          <div className="d-flex flex-wrap">
-            {userData.friends.map(friend => (
-              <div 
-                key={friend._id}
-                className="me-2 mb-2 text-primary"
-                style={{ cursor: 'pointer' }}
-                onClick={() => navigate(`/profile/${friend._id}`)}
-              >
-                {friend.username}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p>Brak znajomych</p>
-        )}
-      </div>
+      {/* Znajomi cudzego profilu (opcjonalnie) */}
+      {friendsCount > 0 ? (
+        <div className="d-flex flex-wrap mb-3">
+          {userData.friends.map(friend => (
+            <div key={friend._id} className="me-2 text-primary">
+              {friend.username}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p>Brak znajomych</p>
+      )}
 
       {/* Posty usera */}
       {userPosts.length === 0 ? (
         <p>Brak postów</p>
       ) : (
         <div className="row">
-          {userPosts.map((post) => (
+          {userPosts.map(post => (
             <div key={post._id} className="col-12 mb-3">
               <div className="card">
                 {post.image && (
-                  <img 
+                  <img
                     src={post.image}
                     alt="post-img"
                     className="card-img-top"
@@ -118,4 +106,4 @@ function Profile() {
   );
 }
 
-export default Profile;
+export default UserProfile;
