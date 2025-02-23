@@ -8,7 +8,7 @@ const requireAuth = require('../middleware/auths');
 const SECRET_KEY = 'supersekretnyklucz'; // w praktyce trzymamy w zmiennych środowiskowych
 
 // Rejestracja
-router.post('/register', requireAuth, async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
     

@@ -66,19 +66,19 @@ function Profile() {
         <div>
           <h4>{userData.username}</h4>
           <div className="text-muted">
-            Znajomi: {friendsCount} | Punkty: {userData.points || 0}
+            
+            {/* Lista znajomych */}
+            <div className="mb-3">
+              <button
+                className="btn btn-link p-0 text-decoration-none"
+                onClick={() => setShowFriends(true)}
+              >
+                 {friendsCount} znajomych
+              </button>
+              | Punkty: {userData.points || 0}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Lista znajomych */}
-      <div className="mb-3">
-        <button
-          className="btn btn-link p-0 text-decoration-none"
-          onClick={() => setShowFriends(true)}
-        >
-          Znajomi ({friendsCount})
-        </button>
       </div>
 
       {/* Modal wyświetlający się, gdy showFriends = true */}

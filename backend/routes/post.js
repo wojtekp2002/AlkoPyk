@@ -3,45 +3,42 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 
 const requireAuth = require('../middleware/auths');
-const Post = require('../models/post-model'); 
-const User = require('../models/user-model');     
+const Post = require('../models/post-model');
+const User = require('../models/user-model');  
 
-
-router.post(
-  '/create',
-  requireAuth,
-  async (req, res) => {
-    try {
-      const { description, whatWasDrunk, cost, withFriends, image } = req.body;
-
-      const newPost = new Post({
-        author: req.userId,
-        description,
-        whatWasDrunk,
-        cost,
-        withFriends,  // tablica IDs znajomych
-        image
-      });
-
-      await newPost.save();
-      return res.status(201).json({ message: 'Post utworzony', post: newPost });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Błąd serwera przy tworzeniu posta' });
-    }
+/** Tworzenie posta */
+router.post('/create', requireAuth, async (req, res) => {
+  try {
+    const { description, whatWasDrunk, cost, withFriends, image } = req.body;
+    const newPost = new Post({
+      author: req.userId,
+      description,
+      whatWasDrunk,
+      cost,
+      withFriends,
+      image
+    });
+    await newPost.save();
+    return res.status(201).json({ message: 'Post utworzony', post: newPost });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Błąd serwera przy tworzeniu posta' });
   }
-);
+});
 
-
+/** Pobieranie postów (z opcją userId=xxx) */
 router.get('/', requireAuth, async (req, res) => {
   try {
-    // np. sortujemy po dacie malejąco
-    const posts = await Post.find({})
+    const { userId } = req.query; 
+    let filter = {};
+    if (userId) {
+      filter.author = userId;
+    }
+    const posts = await Post.find(filter)
       .sort({ createdAt: -1 })
-      .populate('author', 'username')     // jeżeli chcesz mieć dane usera
+      .populate('author', 'username')
       .populate('withFriends', 'username')
-      .populate('comments.user', 'username'); // wyświetli username autora komentarza
-
+      .populate('comments.user', 'username');
     return res.json(posts);
   } catch (err) {
     console.error(err);
@@ -49,41 +46,29 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
-
-router.post(
-  '/:postId/comment',
+/** Dodawanie komentarza */
+router.post('/:postId/comment',
   requireAuth,
   [
-    check('text')
-      .notEmpty()
-      .withMessage('Komentarz nie może być pusty')
+    check('text').notEmpty().withMessage('Komentarz nie może być pusty')
   ],
   async (req, res) => {
     try {
-      // Walidacja
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-
       const { postId } = req.params;
       const { text } = req.body;
-
-      // Znajdź posta
       const post = await Post.findById(postId);
-      if (!post) {
-        return res.status(404).json({ message: 'Post nie istnieje' });
-      }
+      if (!post) return res.status(404).json({ message: 'Post nie istnieje' });
 
-      // Dodajemy komentarz do tablicy comments
-      const newComment = {
+      post.comments.push({
         user: req.userId,
-        text: text,
+        text,
         createdAt: new Date()
-      };
-      post.comments.push(newComment);
+      });
       await post.save();
-
       return res.json({ message: 'Dodano komentarz', post });
     } catch (err) {
       console.error(err);
@@ -92,27 +77,22 @@ router.post(
   }
 );
 
-
+/** Usuwanie komentarza */
 router.delete('/:postId/comment/:commentId', requireAuth, async (req, res) => {
   try {
     const { postId, commentId } = req.params;
-
     const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({ message: 'Post nie istnieje' });
     }
-
-    // Szukanie komentarza
     const commentIndex = post.comments.findIndex(
       c => c._id.toString() === commentId
     );
     if (commentIndex === -1) {
       return res.status(404).json({ message: 'Komentarz nie istnieje' });
     }
-
     post.comments.splice(commentIndex, 1);
     await post.save();
-
     return res.json({ message: 'Komentarz usunięty', post });
   } catch (err) {
     console.error(err);
@@ -120,7 +100,7 @@ router.delete('/:postId/comment/:commentId', requireAuth, async (req, res) => {
   }
 });
 
-
+/** Lajkowanie / odlajkowanie posta */
 router.post('/:postId/like', requireAuth, async (req, res) => {
   try {
     const { postId } = req.params;
@@ -128,19 +108,14 @@ router.post('/:postId/like', requireAuth, async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: 'Post nie istnieje' });
     }
-
-    // Czy user już polubił
     const hasLiked = post.likedBy.includes(req.userId);
-
     if (hasLiked) {
       // Odlajkowanie
-      post.likedBy = post.likedBy.filter(
-        userId => userId.toString() !== req.userId
-      );
+      post.likedBy = post.likedBy.filter(u => u.toString() !== req.userId);
       await post.save();
       return res.json({ message: 'Post odlubiony', post });
     } else {
-      
+      // Polubienie
       post.likedBy.push(req.userId);
       await post.save();
       return res.json({ message: 'Post polubiony', post });
@@ -148,29 +123,6 @@ router.post('/:postId/like', requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Błąd serwera przy lajkowaniu posta' });
-  }
-});
-
-router.get('/', requireAuth, async (req, res) => {
-  try {
-    const { userId } = req.query; // z zapytania np. ?userId=63cabc...
-
-    let filter = {};
-    if (userId) {
-      filter.author = userId;
-    }
-
-    // Pobieramy z bazy
-    const posts = await Post.find(filter)
-      .sort({ createdAt: -1 })
-      .populate('author', 'username')
-      .populate('withFriends', 'username')
-      .populate('comments.user', 'username');
-
-    return res.json(posts);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Błąd serwera przy pobieraniu postów' });
   }
 });
 

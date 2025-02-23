@@ -1,40 +1,47 @@
-/* Gradient fiolet-zielony dla landing page */
-.landing-page-container {
+
+   .landing-page-container {
+    position: relative;
     height: 100vh;
     width: 100%;
-    background: linear-gradient(135deg, #c3073f, #950740);
-    position: relative;
     overflow: hidden;
-}
-
-/* Confetti shapes */
-.landing-page-container::before,
-.landing-page-container::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 200%;
-  background: repeating-linear-gradient(
-    45deg,
-    #fff,
-    #fff 10px,
-    transparent 10px,
-    transparent 20px
-  );
-  opacity: 0.2;
-  animation: confetti 5s linear infinite;
-}
-
-.landing-page-container::after {
-  animation-delay: -2.5s;
-  opacity: 0.15;
-}
-
-@keyframes confetti {
-  0% { transform: translateX(0) }
-  100% { transform: translateX(-50%) }
-}
+    
+    /* Neonowe kolory – fiolet i róż, np. */
+    background: linear-gradient(135deg, #b400ff, #ff0066);
+  }
+  
+  /* Pseudo-elementy: confetti pattern, pointer-events: none; */
+  .landing-page-container::before,
+  .landing-page-container::after {
+    content: '';
+    position: absolute;
+    top: 0; 
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* kluczowe! */
+    opacity: 0.2;
+  
+    /* Proste paski ukośne */
+    background: repeating-linear-gradient(
+      45deg,
+      #fff,
+      #fff 10px,
+      transparent 10px,
+      transparent 20px
+    );
+  
+    animation: confetti 5s linear infinite;
+  }
+  
+  .landing-page-container::after {
+    animation-delay: -10s;
+    opacity: 0;
+  }
+  
+  @keyframes confetti {
+    0% { transform: translateX(0) }
+    100% { transform: translateX(0) }
+  }
 
 /* Karty logowania */
 .auth-container {

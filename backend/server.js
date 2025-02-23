@@ -2,58 +2,52 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const mongoose = require('mongoose');
+
 const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/add-friend');
+const userRoutes = require('./routes/user'); // scalony plik user.js
 const postRoutes = require('./routes/post');
 const eventRoutes = require('./routes/event');
-const profileRoutes = require('./routes/user')
 const notifRoutes = require('./routes/notifications');
 
 app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
+  origin: 'http://localhost:3000',
+  credentials: true
 }));
 
-// Middleware
-app.use(express.json()); // pozwala na parsowanie JSON w body requestu
+app.use(express.json());
 
-// Testowa trasa
+// Testowa
 app.get('/', (req, res) => {
-  res.send('No elo elo!');
+  res.send('Skibidi');
+});
+
+mongoose.connect('mongodb://localhost:27017/alko-app', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => {
+  console.log('Połączono z MongoDB');
+})
+.catch(err => {
+  console.error('Błąd połączenia z MongoDB:', err);
 });
 
 const PORT = 5000;
-// Uruchomienie serwera
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
 
-//db
-mongoose.connect('mongodb://localhost:27017/alko-app', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-.then(() => {
-    console.log('Połączono z MongoDB');
-  })
-  .catch(err => {
-    console.error('Błąd połączenia z MongoDB:', err);
-  });
-
-//auth
+// Rejestracja / Logowanie
 app.use('/api/auth', authRoutes);
 
-//add-friend
+// Użytkownicy (profil, add-friend, search, /:id)
 app.use('/api/users', userRoutes);
 
-//event
-app.use('/api/events', eventRoutes);
-
-//posty
+// Posty
 app.use('/api/posts', postRoutes);
 
-//profil
-app.use('/api/profile', profileRoutes);
+// Eventy
+app.use('/api/events', eventRoutes);
 
-//powiadomienia
+// Powiadomienia
 app.use('/api/notifications', notifRoutes);
